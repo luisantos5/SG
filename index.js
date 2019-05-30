@@ -7,7 +7,21 @@ var toggleShadows = true;
 var cancelas = []
 var plane, walk;
 
+var cameraXPosition = -10100
+
+var playerRight = false
+var playerLeft = false
+
+var playerMesh
+var gameOver = false
+
+var velocity = 5
+var paused = false
+
 window.onload = function init() {
+
+  document.onkeydown = handleKeyDown;
+  document.onkeyup = handleKeyUp;
 
   createScene()
 
@@ -19,6 +33,8 @@ window.onload = function init() {
 
   renderer.render(scene, camera);
 
+  animate()
+
 }
 
 function createScene() {
@@ -28,9 +44,9 @@ function createScene() {
   //Ajuda nos limites da camera
 
   var aspect = window.innerWidth / window.innerHeight;
-  camera = new THREE.PerspectiveCamera(100, aspect, 0.1, 20000);
+  camera = new THREE.PerspectiveCamera(100, aspect, 0.1, 10000);
   //Meter câmera a olhar para longe
-  camera.position.set(-6087, 158, -26);
+  camera.position.set(cameraXPosition, 120, 0);
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -68,8 +84,10 @@ function createLights() {
   directionalLight.shadow.camera.right = 500;
   directionalLight.shadow.camera.far = 1000;
   directionalLight.castShadow = true;
+
   scene.add(directionalLight);
-  directionalLight.visible = false;
+
+  directionalLight.visible = true;
 
   console.log("Lights Created")
 
@@ -78,7 +96,7 @@ function createLights() {
 function createPlan() {
 
   //Grass
-  var planeGeometry = new THREE.PlaneBufferGeometry(20000, 3000, 32, 32);
+  var planeGeometry = new THREE.PlaneBufferGeometry(20000, 2000, 32, 32);
 
   var planeMaterial = new THREE.MeshLambertMaterial({
     color: 0x46E84C,
@@ -152,6 +170,7 @@ function loadPlanObjects() {
         mesh.position.y = 0;
         mesh.position.z = -(plane.geometry.parameters.height) / 2;
 
+
         scene.add(mesh)
 
       });
@@ -169,7 +188,7 @@ function loadPlanObjects() {
       objLoader.setMaterials(materials);
       objLoader.load('Elements/Tree.obj', function (object) {// load a geometry resource
 
-        var randomLeftSpacing = Math.floor(Math.random() * 500) + 200
+        var randomLeftSpacing = Math.floor(Math.random() * 300) + 100
         var randomFrontalSpacing = Math.floor(Math.random() * 300) + 170
 
         mesh = object;
@@ -178,6 +197,8 @@ function loadPlanObjects() {
         mesh.position.y = 0;
         mesh.position.z = -(plane.geometry.parameters.height) / 2 + randomLeftSpacing;
 
+
+        mesh.material = new THREE.MeshLambertMaterial({ color: "green" })
         scene.add(mesh)
 
       });
@@ -195,7 +216,7 @@ function loadPlanObjects() {
       objLoader.setMaterials(materials);
       objLoader.load('Elements/Tree.obj', function (object) {// load a geometry resource
 
-        var randomLeftSpacing = Math.floor(Math.random() * 500) + 200
+        var randomLeftSpacing = Math.floor(Math.random() * 300) + 200
         var randomFrontalSpacing = Math.floor(Math.random() * 300) + 170
 
         mesh = object;
@@ -228,7 +249,7 @@ function loadPlanObjects() {
         mesh.position.z = -(plane.geometry.parameters.height) / 2 + (plane.geometry.parameters.height / 2.8);
 
 
-
+        /*
         if (i == 1) {
 
           var axisHelper = new THREE.AxesHelper(50);
@@ -243,7 +264,7 @@ function loadPlanObjects() {
           scene.add(spotLightHelper);
 
           scene.add(spotLight);
-        }
+        }*/
 
 
         scene.add(mesh)
@@ -275,6 +296,119 @@ function loadPlanObjects() {
     });
   }
 
+  //Player
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('Elements/Player1.mtl', function (materials) {
+    materials.preload(); // load a material’s resource
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.load('Elements/Player1.obj', function (object) {// load a geometry resource
+
+      playerMesh = object;
+      //mesh.material.color = "#B08A3E";
+      playerMesh.position.x = - (plane.geometry.parameters.width / 2) + 100;
+      playerMesh.position.y = 25;
+      playerMesh.position.z = 0;
+
+      playerMesh.rotation.y = Math.PI / 2;
+
+      scene.add(playerMesh)
+
+    });
+  });
+
   console.log("Objects Plan Loaded")
+
+}
+
+function pauseMenu() {
+
+  //Walk
+  var planeGeometry = new THREE.PlaneBufferGeometry((200), (200), 32, 32);
+  var planeMaterial = new THREE.MeshLambertMaterial({
+    color: 0x696969,
+    side: THREE.DoubleSide,
+    opacity: 0.5
+  });
+  blur = new THREE.Mesh(planeGeometry, planeMaterial);
+  blur.name = "plane"
+
+  scene.add(blur);
+
+}
+
+function animate() {
+
+  if (paused) {
+
+    pauseMenu()
+
+  }
+
+  if (!paused) {
+
+    if (playerRight) {
+
+      if (playerMesh.position.z <= 400) {
+        playerMesh.position.z += 10
+      }
+
+    }
+
+    if (playerLeft) {
+
+      if (playerMesh.position.z > -400) {
+        playerMesh.position.z -= 10
+      }
+
+    }
+
+    if (playerMesh) {
+
+      camera.position.x += velocity
+      playerMesh.position.x += velocity
+
+      if (playerMesh.position.x >= 10000) {
+        playerMesh.position.y -= 10
+        gameOver = true
+      }
+
+    }
+  }
+
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate)
+
+}
+
+function handleKeyDown(event) {
+
+  var char = String.fromCharCode(event.keyCode);
+
+  if (char === "D") {
+    playerRight = true
+  }
+
+  if (char === "A") {
+    playerLeft = true
+  }
+
+  if (char === " ") {
+    paused = !paused
+  }
+}
+
+function handleKeyUp(event) {
+
+  var char = String.fromCharCode(event.keyCode);
+
+  if (char === "D") {
+    playerRight = false
+  }
+
+  if (char === "A") {
+    playerLeft = false
+  }
 
 }
