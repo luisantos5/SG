@@ -1,4 +1,4 @@
-var renderer, scene, camera;
+var renderer, scene, cameraBack, cameraUp;
 
 var ambientLight, spotLight, directionalLight, pointLight;
 var controls;
@@ -7,16 +7,23 @@ var toggleShadows = true;
 var cancelas = []
 var plane, walk;
 
+var fallingObjects = []
+
 var cameraXPosition = -10100
 
 var playerRight = false
 var playerLeft = false
 
-var playerMesh
+var player = {}
 var gameOver = false
 
 var velocity = 5
 var paused = false
+
+var rotationFlagLA = 0.02
+var rotationFlagRA = -0.02
+var rotationFlagLL = -0.02
+var rotationFlagRL = 0.02
 
 window.onload = function init() {
 
@@ -305,20 +312,33 @@ function loadPlanObjects() {
     objLoader.setMaterials(materials);
     objLoader.load('Elements/Player1.obj', function (object) {// load a geometry resource
 
-      playerMesh = object;
+      player.playerMesh = object;
       //mesh.material.color = "#B08A3E";
-      playerMesh.position.x = - (plane.geometry.parameters.width / 2) + 100;
-      playerMesh.position.y = 25;
-      playerMesh.position.z = 0;
+      player.playerMesh.position.x = - (plane.geometry.parameters.width / 2) + 100;
+      player.playerMesh.position.y = 60;
+      player.playerMesh.position.z = 0;
 
-      playerMesh.rotation.y = Math.PI / 2;
+      player.playerMesh.rotation.y = Math.PI / 2;
 
-      scene.add(playerMesh)
+      scene.add(player.playerMesh)
+
+      player.rightLeg = player.playerMesh.children[1]
+      player.leftLeg = player.playerMesh.children[2]
+      player.rightArm = player.playerMesh.children[5]
+      player.leftArm = player.playerMesh.children[3]
 
     });
   });
 
+  loadFallingObjects()
+
   console.log("Objects Plan Loaded")
+
+}
+
+function loadFallingObjects() {
+
+
 
 }
 
@@ -350,29 +370,33 @@ function animate() {
 
     if (playerRight) {
 
-      if (playerMesh.position.z <= 400) {
-        playerMesh.position.z += 10
+      if (player.playerMesh.position.z <= 400) {
+        player.playerMesh.position.z += 10
       }
 
     }
 
     if (playerLeft) {
 
-      if (playerMesh.position.z > -400) {
-        playerMesh.position.z -= 10
+      if (player.playerMesh.position.z > -400) {
+        player.playerMesh.position.z -= 10
       }
 
     }
 
-    if (playerMesh) {
+    if (player.playerMesh) {
 
       camera.position.x += velocity
-      playerMesh.position.x += velocity
+      player.playerMesh.position.x += velocity
 
-      if (playerMesh.position.x >= 10000) {
-        playerMesh.position.y -= 10
+      if (player.playerMesh.position.x >= 10000) {
+        player.playerMesh.position.y -= 10
         gameOver = true
       }
+
+      //Rotation of all members of the Player Body
+      rotateMembers()
+
 
     }
   }
@@ -380,6 +404,34 @@ function animate() {
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate)
+
+}
+
+function rotateMembers() {
+
+  player.leftArm.rotation.x += rotationFlagLA
+
+  if (player.leftArm.rotation.x > 1 || player.leftArm.rotation.x < -1) {
+    rotationFlagLA = -rotationFlagLA
+  }
+
+  player.rightArm.rotation.x += rotationFlagRA
+
+  if (player.rightArm.rotation.x > 1 || player.rightArm.rotation.x < -1) {
+    rotationFlagRA = -rotationFlagRA
+  }
+
+  player.leftLeg.rotation.x += rotationFlagLL
+
+  if (player.leftLeg.rotation.x > 0.3 || player.leftLeg.rotation.x < -0.3) {
+    rotationFlagLL = -rotationFlagLL
+  }
+
+  player.rightLeg.rotation.x += rotationFlagRL
+
+  if (player.rightLeg.rotation.x > 0.3 || player.rightLeg.rotation.x < -0.3) {
+    rotationFlagRL = -rotationFlagRL
+  }
 
 }
 
