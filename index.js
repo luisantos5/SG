@@ -426,6 +426,7 @@ function animate() {
 
       if (player.playerMesh.position.x >= 10000) {
         player.playerMesh.position.y -= 10
+        paused = true
         gameOver = true
       }
 
