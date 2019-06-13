@@ -25,6 +25,9 @@ var rotationFlagRA = -0.02
 var rotationFlagLL = -0.02
 var rotationFlagRL = 0.02
 
+var frames = 0
+var fallingObjects = []
+
 window.onload = function init() {
 
   document.onkeydown = handleKeyDown;
@@ -124,7 +127,7 @@ function createPlan() {
     side: THREE.DoubleSide
   });
   walk = new THREE.Mesh(planeGeometry, planeMaterial);
-  walk.name = "plane"
+  walk.name = "walk"
   walk.rotation.x = -Math.PI / 2;
   walk.position.y = 8;
   walk.receiveShadow = true;
@@ -330,15 +333,39 @@ function loadPlanObjects() {
     });
   });
 
-  loadFallingObjects()
-
   console.log("Objects Plan Loaded")
 
 }
 
+let cookie
+
 function loadFallingObjects() {
 
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('Elements/Cookie.mtl', function (materials) {
+    materials.preload(); // load a material’s resource
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.load('Elements/Cookie.obj', function (object) {// load a geometry resource
 
+      // let cookie
+      let range = walk.geometry.parameters.height
+
+      cookie = object;
+      // cookie.material.color.setRGB(204, 204, 204);
+      cookie.position.x = camera.position.x + 500
+      cookie.position.y += 500
+      cookie.position.z = Math.floor(Math.random() * (range)) + -(range/2);
+      //console.log(cookie.position)
+
+      fallingObjects.push(cookie)
+      //console.log(fallingObjects)
+      scene.add(cookie)
+
+    });
+  });
+
+  console.log("ENEMIES LOADED")
 
 }
 
@@ -360,6 +387,8 @@ function pauseMenu() {
 
 function animate() {
 
+  frames++
+
   if (paused) {
 
     pauseMenu()
@@ -367,6 +396,12 @@ function animate() {
   }
 
   if (!paused) {
+
+    if (frames % 100 == 0) {
+
+      loadFallingObjects()
+
+    }
 
     if (playerRight) {
 
@@ -396,6 +431,7 @@ function animate() {
 
       //Rotation of all members of the Player Body
       rotateMembers()
+      updateEnemies()
 
 
     }
@@ -404,6 +440,32 @@ function animate() {
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate)
+
+}
+
+function updateEnemies() {
+
+  for (let i = 0; i < fallingObjects.length; i++) {
+
+    if ((fallingObjects[i].position.y > plane.position.y + 12)) {
+      fallingObjects[i].position.y -= 7
+      fallingObjects[i].position.x += velocity
+    }
+    else {
+      console.log("ASD")
+    }
+    
+    
+
+    if (fallingObjects[i].position.x < camera.position.x) {
+      fallingObjects.splice(i, 1)
+      i--
+      //console.log(fallingObjects)
+    }
+
+    
+
+  }
 
 }
 
