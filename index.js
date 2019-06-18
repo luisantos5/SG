@@ -37,6 +37,8 @@ window.onload = function init() {
 
   createLights()
 
+  createSkyBox()
+
   createPlan()
 
   loadPlanObjects()
@@ -55,7 +57,7 @@ function createScene() {
   //Ajuda nos limites da camera
 
   var aspect = window.innerWidth / window.innerHeight;
-  camera = new THREE.PerspectiveCamera(100, aspect, 0.1, 10000);
+  camera = new THREE.PerspectiveCamera(100, aspect, 0.1, 30000);
   //Meter câmera a olhar para longe
   camera.position.set(cameraXPosition, 120, 0);
 
@@ -78,6 +80,43 @@ function createScene() {
   controls.update();
 
   console.log("Scene Created")
+
+}
+
+function createSkyBox() {
+
+  var geometry = new THREE.CubeGeometry(20500, 20500, 10000);
+  var cubeMaterials = [
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/xpos.png"),
+      side: THREE.DoubleSide
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/xneg.png"),
+      side: THREE.DoubleSide
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/ypos.png"),
+      side: THREE.DoubleSide
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/yneg.png"),
+      side: THREE.DoubleSide
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/zpos.png"),
+      side: THREE.DoubleSide
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("Elements/SkyBox/zneg.png"),
+      side: THREE.DoubleSide
+    })
+  ]
+
+  var cubeMaterial = new THREE.MeshFaceMaterial( cubeMaterials);
+  var cube = new THREE.Mesh( geometry, cubeMaterial);
+
+  scene.add(cube)
 
 }
 
@@ -330,6 +369,11 @@ function loadPlanObjects() {
       player.rightArm = player.playerMesh.children[5]
       player.leftArm = player.playerMesh.children[3]
 
+      player.box = new THREE.Box3().setFromObject(player.playerMesh)
+
+      /*player.playerMesh.geometry.computeBoundingBox()
+      player.box = player.playerMesh.geometry.boundingBox.clone()*/
+
     });
   });
 
@@ -355,10 +399,10 @@ function loadFallingObjects() {
       // cookie.material.color.setRGB(204, 204, 204);
       cookie.position.x = camera.position.x + 500
       cookie.position.y += 500
-      cookie.position.z = Math.floor(Math.random() * (range)) + -(range/2);
+      cookie.position.z = Math.floor(Math.random() * (range)) + -(range / 2);
       //console.log(cookie.position)
 
-      fallingObjects.push(cookie)
+      fallingObjects.push({ type: "good", object: cookie, box: new THREE.Box3().setFromObject(cookie) })
       //console.log(fallingObjects)
       scene.add(cookie)
 
@@ -402,69 +446,91 @@ function animate() {
       loadFallingObjects()
 
     }
-
-    if (playerRight) {
-
-      if (player.playerMesh.position.z <= 400) {
-        player.playerMesh.position.z += 10
-      }
-
-    }
-
-    if (playerLeft) {
-
-      if (player.playerMesh.position.z > -400) {
-        player.playerMesh.position.z -= 10
-      }
-
-    }
-
     if (player.playerMesh) {
+
+      if (playerRight) {
+
+        if (player.playerMesh.position.z <= 400) {
+          player.playerMesh.position.z += 10
+        }
+
+      }
+
+      if (playerLeft) {
+
+        if (player.playerMesh.position.z > -400) {
+          player.playerMesh.position.z -= 10
+        }
+
+      }
 
       camera.position.x += velocity
       player.playerMesh.position.x += velocity
 
       if (player.playerMesh.position.x >= 10000) {
+
         player.playerMesh.position.y -= 10
         paused = true
         gameOver = true
+
       }
+
+      /*player.playerMesh.updateMatrixWorld(true)
+      player.box.copy(player.box).applyMatrix4(player.playerMesh.matrixWorld)*/
 
       //Rotation of all members of the Player Body
       rotateMembers()
-      updateEnemies()
-
+      updateFallingObjects()
+      calculateCollisions()
 
     }
   }
-
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate)
 
 }
 
-function updateEnemies() {
+function calculateCollisions() {
+
+  /*console.log(player.box)
+
+  fallingObjects.forEach(fO => {
+
+    console.log(player.box.intersectsBox(fO.box))
+
+    if (fO.box.intersectsBox(player.box)) {
+
+      console.log("INTER")
+
+    }
+
+
+  });*/
+
+}
+
+function updateFallingObjects() {
 
   for (let i = 0; i < fallingObjects.length; i++) {
 
-    if ((fallingObjects[i].position.y > plane.position.y + 12)) {
-      fallingObjects[i].position.y -= 7
-      fallingObjects[i].position.x += velocity
-    }
-    else {
-      console.log("ASD")
-    }
-    
-    
+    if ((fallingObjects[i].object.position.y > plane.position.y + 20)) {
 
-    if (fallingObjects[i].position.x < camera.position.x) {
+      fallingObjects[i].object.position.y -= 7
+      fallingObjects[i].object.position.x += velocity
+
+      //Update Bounding Box
+      fallingObjects[i].object.updateMatrixWorld(true)
+      fallingObjects[i].box.copy(fallingObjects[i].box).applyMatrix4(fallingObjects[i].object.matrixWorld)
+
+    }
+
+    if (fallingObjects[i].object.position.x < camera.position.x) {
+
       fallingObjects.splice(i, 1)
       i--
-      //console.log(fallingObjects)
-    }
 
-    
+    }
 
   }
 
