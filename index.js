@@ -26,7 +26,9 @@ var rotationFlagLL = -0.02
 var rotationFlagRL = 0.02
 
 var frames = 0
-var fallingObjects = []
+
+var score = 0
+var lifes = 5
 
 window.onload = function init() {
 
@@ -43,9 +45,35 @@ window.onload = function init() {
 
   loadPlanObjects()
 
+  loadHealthAndScore()
+
   renderer.render(scene, camera);
 
   animate()
+
+}
+
+function loadHealthAndScore() {
+
+  var loader = new THREE.FontLoader();
+
+  loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+
+    var geometry = new THREE.TextGeometry('Hello three.js!', {
+      font: font,
+      size: 80,
+      height: 5,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 10,
+      bevelSize: 8,
+      bevelOffset: 0,
+      bevelSegments: 5
+    });
+  });
+
+
+  console.log("Health and Score Available")
 
 }
 
@@ -113,8 +141,8 @@ function createSkyBox() {
     })
   ]
 
-  var cubeMaterial = new THREE.MeshFaceMaterial( cubeMaterials);
-  var cube = new THREE.Mesh( geometry, cubeMaterial);
+  var cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
+  var cube = new THREE.Mesh(geometry, cubeMaterial);
 
   scene.add(cube)
 
@@ -369,8 +397,6 @@ function loadPlanObjects() {
       player.rightArm = player.playerMesh.children[5]
       player.leftArm = player.playerMesh.children[3]
 
-      player.box = new THREE.Box3().setFromObject(player.playerMesh)
-
       /*player.playerMesh.geometry.computeBoundingBox()
       player.box = player.playerMesh.geometry.boundingBox.clone()*/
 
@@ -402,9 +428,46 @@ function loadFallingObjects() {
       cookie.position.z = Math.floor(Math.random() * (range)) + -(range / 2);
       //console.log(cookie.position)
 
-      fallingObjects.push({ type: "good", object: cookie, box: new THREE.Box3().setFromObject(cookie) })
+      fallingObjects.push({ object: cookie, type: "good" })
       //console.log(fallingObjects)
       scene.add(cookie)
+
+    });
+  });
+
+  var randomEnemy = Math.floor(Math.random() * (2)) + 1;
+  var enemyObject, enemyMTL
+
+  switch (randomEnemy) {
+    case 1: enemyObject = 'Elements/Enemy1.obj'
+            enemyMTL = 'Elements/Enemy1.mtl'
+      break
+    case 2: enemyObject = 'Elements/Enemy2.obj'
+            enemyMTL = 'Elements/Enemy2.mtl'
+      break
+
+  }
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load(enemyMTL, function (materials) {
+    materials.preload(); // load a material’s resource
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.load(enemyObject, function (object) {// load a geometry resource
+
+      // let cookie
+      let range = walk.geometry.parameters.height
+
+      enemy = object;
+      // cookie.material.color.setRGB(204, 204, 204);
+      enemy.position.x = camera.position.x + 500
+      enemy.position.y += 500
+      enemy.position.z = Math.floor(Math.random() * (range)) + -(range / 2);
+      //console.log(cookie.position)
+
+      fallingObjects.push({ object: enemy, type: "bad" })
+      //console.log(fallingObjects)
+      scene.add(enemy)
 
     });
   });
@@ -493,20 +556,35 @@ function animate() {
 
 function calculateCollisions() {
 
-  /*console.log(player.box)
+  for (let i = 0; i < fallingObjects.length; i++) {
 
-  fallingObjects.forEach(fO => {
+    playerBox = new THREE.Box3().setFromObject(player.playerMesh)
 
-    console.log(player.box.intersectsBox(fO.box))
+    fOBox = new THREE.Box3().setFromObject(fallingObjects[i].object)
 
-    if (fO.box.intersectsBox(player.box)) {
+    if (fOBox.intersectsBox(playerBox)) {
 
-      console.log("INTER")
+      var object = fallingObjects[i].object
 
+      if (fallingObjects[i].type === "good") {
+        score += 200
+        fallingObjects.splice(i, 1)
+        scene.remove(object)
+        i--
+        //console.log(score)
+      }
+      else if (fallingObjects[i].type === "bad") {
+        score -= 100
+        lifes -= 1
+        fallingObjects.splice(i, 1)
+        scene.remove(object)
+        i--
+        //console.log(score)
+      }
     }
 
+  }
 
-  });*/
 
 }
 
@@ -514,21 +592,42 @@ function updateFallingObjects() {
 
   for (let i = 0; i < fallingObjects.length; i++) {
 
-    if ((fallingObjects[i].object.position.y > plane.position.y + 20)) {
+    var object = fallingObjects[i]
 
-      fallingObjects[i].object.position.y -= 7
-      fallingObjects[i].object.position.x += velocity
+    if (fallingObjects[i].type === "good") {
 
-      //Update Bounding Box
-      fallingObjects[i].object.updateMatrixWorld(true)
-      fallingObjects[i].box.copy(fallingObjects[i].box).applyMatrix4(fallingObjects[i].object.matrixWorld)
+      if ((fallingObjects[i].object.position.y > plane.position.y + 20)) {
+
+        fallingObjects[i].object.position.y -= 7
+        fallingObjects[i].object.position.x += velocity
+
+      }
+
+      if (fallingObjects[i].object.position.x < camera.position.x) {
+
+        fallingObjects.splice(i, 1)
+        scene.remove(object)
+        i--
+
+      }
 
     }
+    else if (fallingObjects[i].type === "bad") {
 
-    if (fallingObjects[i].object.position.x < camera.position.x) {
+      if ((fallingObjects[i].object.position.y > plane.position.y + 15)) {
 
-      fallingObjects.splice(i, 1)
-      i--
+        fallingObjects[i].object.position.y -= 7
+        fallingObjects[i].object.position.x += velocity
+
+      }
+
+      if (fallingObjects[i].object.position.x < camera.position.x) {
+
+        fallingObjects.splice(i, 1)
+        scene.remove(object)
+        i--
+
+      }
 
     }
 
