@@ -84,8 +84,13 @@ function loadHealthAndScore() {
     //mesh.position.set(-1000,0,-50)
     meshScore.rotateY(-Math.PI / 2)
     scene.add(meshScore)
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 8cd6ac3315c8499a7498d244afe8211964e61b61
     text = 'Vidas: ' + lifes;
     geometry = new THREE.TextGeometry(text, {
       font: fontText,
@@ -97,8 +102,11 @@ function loadHealthAndScore() {
       extrudeMaterial: 1
     });
 <<<<<<< HEAD
+<<<<<<< HEAD
   });*/
 =======
+=======
+>>>>>>> 8cd6ac3315c8499a7498d244afe8211964e61b61
 
     meshLifes = new THREE.Mesh(geometry, material)
     meshLifes.position.x = - (plane.geometry.parameters.width / 2) + 50;
@@ -110,6 +118,7 @@ function loadHealthAndScore() {
 
   });
 >>>>>>> 8cd6ac3315c8499a7498d244afe8211964e61b61
+
 
 
 
