@@ -45,7 +45,7 @@ window.onload = function init() {
 
   createLights()
 
-  createSkyBox()
+  //createSkyBox()
 
   createPlan()
 
