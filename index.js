@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 var renderer, scene, cameraBack, cameraUp;
 
 var ambientLight, spotLight, directionalLight, pointLight;
@@ -449,7 +449,7 @@ function loadPlanObjects() {
 
 }
 
-let cookie
+//let cookie
 
 function loadFallingObjects() {
 
@@ -840,7 +840,7 @@ function handleKeyUp(event) {
     playerLeft = false
   }
 
-=======
+}
 var renderer, scene, cameraBack, cameraUp;
 
 var ambientLight, spotLight, directionalLight, pointLight;
@@ -1667,5 +1667,5 @@ function handleKeyUp(event) {
     playerLeft = false
   }
 
->>>>>>> f4cc9c2e66646b0f0c15c5d7349ff06c46ad43cc
+
 }
