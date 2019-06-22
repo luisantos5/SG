@@ -28,7 +28,7 @@ var rotationFlagRL = 0.02
 var frames = 0
 var heart;
 var score = 0
-var lifes = 1
+var lifes = 5;
 var meshScore;
 var fontText;
 var meshLifes;
@@ -66,6 +66,8 @@ function loadHealthAndScore() {
   loader.load('./json/font.json', data => {
     //var font = new THREE.FontLoader().parse(data);
     fontText = data;
+
+    ////mesh scores
     var text = 'Score: ' + score;
     var geometry = new THREE.TextGeometry(text, {
       font: fontText,
@@ -85,7 +87,7 @@ function loadHealthAndScore() {
     meshScore.rotateY(-Math.PI / 2)
     scene.add(meshScore)
 
-
+    ////mesh vidas
     text = 'Vidas: ' + lifes;
     geometry = new THREE.TextGeometry(text, {
       font: fontText,
@@ -96,7 +98,6 @@ function loadHealthAndScore() {
       bevelThickness: 1,
       extrudeMaterial: 1
     });
-
     meshLifes = new THREE.Mesh(geometry, material)
     meshLifes.position.x = - (plane.geometry.parameters.width / 2) + 50;
     meshLifes.position.y = 20;
@@ -104,6 +105,10 @@ function loadHealthAndScore() {
     //mesh.position.set(-1000,0,-50)
     meshLifes.rotateY(-Math.PI / 2)
     scene.add(meshLifes)
+
+    
+
+
 
   });
 
@@ -513,25 +518,33 @@ function loadFallingObjects() {
 }
 
 function pauseMenu() {
-var text="Paused"
-  var geometry = new THREE.TextGeometry(text, {
-    font: fontText,
-    size: 10,
-    height: 0.5,
+  var loader = new THREE.FontLoader();
+  //var 
+  loader.load('./json/font.json', data => {
+    //var font = new THREE.FontLoader().parse(data);
+    fontText = data;
+
+    ////mesh scores
+    var text = 'PAUSE';
+    var geometry = new THREE.TextGeometry(text, {
+      font: fontText,
+      size: 10,
+      height: 0.5,
 
 
-    bevelThickness: 1,
-    extrudeMaterial: 1
-  });
-  var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
-  pausedMesh = new THREE.Mesh(geometry, material)
-  pausedMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
-  pausedMesh.position.y = 8;
-  pausedMesh.position.z = 200;
-  //mesh.position.set(-1000,0,-50)
-  pausedMesh.rotateY(-Math.PI / 2)
-  scene.add(pausedMesh)
-
+      bevelThickness: 1,
+      extrudeMaterial: 1
+    });
+    var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    pausedMesh = new THREE.Mesh(geometry, material)
+    pausedMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
+    pausedMesh.position.y = 20;
+    pausedMesh.position.z = -15;
+    //mesh.position.set(-1000,0,-50)
+    pausedMesh.rotateY(-Math.PI / 2)
+    scene.add(pausedMesh)
+  
+  })
 }
 
 function animate() {
@@ -549,7 +562,7 @@ function animate() {
     frames++
 
 
-   
+
     if (paused) {
 
       pauseMenu()
@@ -558,6 +571,9 @@ function animate() {
 
 
     if (!paused) {
+      if (pausedMesh) {
+        scene.remove(pausedMesh)
+      }
 
       if (frames % 100 == 0) {
 
@@ -619,10 +635,10 @@ function animate() {
 
 }
 function GameOverText() {
-  var text="Game Over"
+  var text = "Game Over"
   var geometry = new THREE.TextGeometry(text, {
     font: fontText,
-    size: 10,
+    size: 20,
     height: 0.5,
 
 
@@ -632,13 +648,12 @@ function GameOverText() {
   var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
   gameOverMesh = new THREE.Mesh(geometry, material)
   gameOverMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
-  gameOverMesh.position.y = 8;
+  gameOverMesh.position.y = 20;
   gameOverMesh.position.z = 0;
   //mesh.position.set(-1000,0,-50)
   gameOverMesh.rotateY(-Math.PI / 2)
-  scene.add( gameOverMesh)
-
-
+  scene.add(gameOverMesh)
+  console.log(gameOverMesh)
 
 }
 
