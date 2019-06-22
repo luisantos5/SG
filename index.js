@@ -26,9 +26,15 @@ var rotationFlagLL = -0.02
 var rotationFlagRL = 0.02
 
 var frames = 0
-
+var heart;
 var score = 0
-var lifes = 5
+var lifes = 1
+var meshScore;
+var fontText;
+var meshLifes;
+var pausedMesh;
+var gameOverMesh;
+
 
 window.onload = function init() {
 
@@ -56,21 +62,51 @@ window.onload = function init() {
 function loadHealthAndScore() {
 
   var loader = new THREE.FontLoader();
+  //var 
+  loader.load('./json/font.json', data => {
+    //var font = new THREE.FontLoader().parse(data);
+    fontText = data;
+    var text = 'Score: ' + score;
+    var geometry = new THREE.TextGeometry(text, {
+      font: fontText,
+      size: 10,
+      height: 0.5,
 
-  loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
 
-    var geometry = new THREE.TextGeometry('Hello three.js!', {
-      font: font,
-      size: 80,
-      height: 5,
-      curveSegments: 12,
-      bevelEnabled: true,
-      bevelThickness: 10,
-      bevelSize: 8,
-      bevelOffset: 0,
-      bevelSegments: 5
+      bevelThickness: 1,
+      extrudeMaterial: 1
     });
+    var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    meshScore = new THREE.Mesh(geometry, material)
+    meshScore.position.x = - (plane.geometry.parameters.width / 2) + 50;
+    meshScore.position.y = 8;
+    meshScore.position.z = 200;
+    //mesh.position.set(-1000,0,-50)
+    meshScore.rotateY(-Math.PI / 2)
+    scene.add(meshScore)
+
+
+    text = 'Vidas: ' + lifes;
+    geometry = new THREE.TextGeometry(text, {
+      font: fontText,
+      size: 10,
+      height: 0.5,
+
+
+      bevelThickness: 1,
+      extrudeMaterial: 1
+    });
+
+    meshLifes = new THREE.Mesh(geometry, material)
+    meshLifes.position.x = - (plane.geometry.parameters.width / 2) + 50;
+    meshLifes.position.y = 20;
+    meshLifes.position.z = 200;
+    //mesh.position.set(-1000,0,-50)
+    meshLifes.rotateY(-Math.PI / 2)
+    scene.add(meshLifes)
+
   });
+
 
 
   console.log("Health and Score Available")
@@ -440,10 +476,10 @@ function loadFallingObjects() {
 
   switch (randomEnemy) {
     case 1: enemyObject = 'Elements/Enemy1.obj'
-            enemyMTL = 'Elements/Enemy1.mtl'
+      enemyMTL = 'Elements/Enemy1.mtl'
       break
     case 2: enemyObject = 'Elements/Enemy2.obj'
-            enemyMTL = 'Elements/Enemy2.mtl'
+      enemyMTL = 'Elements/Enemy2.mtl'
       break
 
   }
@@ -477,80 +513,132 @@ function loadFallingObjects() {
 }
 
 function pauseMenu() {
+var text="Paused"
+  var geometry = new THREE.TextGeometry(text, {
+    font: fontText,
+    size: 10,
+    height: 0.5,
 
-  //Walk
-  var planeGeometry = new THREE.PlaneBufferGeometry((200), (200), 32, 32);
-  var planeMaterial = new THREE.MeshLambertMaterial({
-    color: 0x696969,
-    side: THREE.DoubleSide,
-    opacity: 0.5
+
+    bevelThickness: 1,
+    extrudeMaterial: 1
   });
-  blur = new THREE.Mesh(planeGeometry, planeMaterial);
-  blur.name = "plane"
-
-  scene.add(blur);
+  var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  pausedMesh = new THREE.Mesh(geometry, material)
+  pausedMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
+  pausedMesh.position.y = 8;
+  pausedMesh.position.z = 200;
+  //mesh.position.set(-1000,0,-50)
+  pausedMesh.rotateY(-Math.PI / 2)
+  scene.add(pausedMesh)
 
 }
 
 function animate() {
 
-  frames++
+  if (lifes == 0) {
+    gameOver = true;
 
-  if (paused) {
+  }
+  if (gameOver) {
+    GameOverText()
 
-    pauseMenu()
+  }
+  if (!gameOver) {
+
+    frames++
+
+
+   
+    if (paused) {
+
+      pauseMenu()
+
+    }
+
+
+    if (!paused) {
+
+      if (frames % 100 == 0) {
+
+        loadFallingObjects()
+
+      }
+      if (player.playerMesh) {
+
+        if (playerRight) {
+
+          if (player.playerMesh.position.z <= 400) {
+            player.playerMesh.position.z += 10
+          }
+
+        }
+
+        if (playerLeft) {
+
+          if (player.playerMesh.position.z > -400) {
+            player.playerMesh.position.z -= 10
+          }
+
+        }
+
+        camera.position.x += velocity
+        player.playerMesh.position.x += velocity
+
+        meshScore.position.x += velocity
+        meshLifes.position.x += velocity
+
+        if (player.playerMesh.position.x >= 10000) {
+
+          player.playerMesh.position.y -= 10
+          //paused = true
+          gameOver = true
+
+        }
+
+        /*player.playerMesh.updateMatrixWorld(true)
+        player.box.copy(player.box).applyMatrix4(player.playerMesh.matrixWorld)*/
+
+        //Rotation of all members of the Player Body
+        rotateMembers()
+        updateFallingObjects()
+        calculateCollisions()
+        //loadHealthAndScore()
+
+      }
+
+
+    }
+
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(animate)
 
   }
 
-  if (!paused) {
 
-    if (frames % 100 == 0) {
+}
+function GameOverText() {
+  var text="Game Over"
+  var geometry = new THREE.TextGeometry(text, {
+    font: fontText,
+    size: 10,
+    height: 0.5,
 
-      loadFallingObjects()
 
-    }
-    if (player.playerMesh) {
+    bevelThickness: 1,
+    extrudeMaterial: 1
+  });
+  var material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  gameOverMesh = new THREE.Mesh(geometry, material)
+  gameOverMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
+  gameOverMesh.position.y = 8;
+  gameOverMesh.position.z = 0;
+  //mesh.position.set(-1000,0,-50)
+  gameOverMesh.rotateY(-Math.PI / 2)
+  scene.add( gameOverMesh)
 
-      if (playerRight) {
 
-        if (player.playerMesh.position.z <= 400) {
-          player.playerMesh.position.z += 10
-        }
-
-      }
-
-      if (playerLeft) {
-
-        if (player.playerMesh.position.z > -400) {
-          player.playerMesh.position.z -= 10
-        }
-
-      }
-
-      camera.position.x += velocity
-      player.playerMesh.position.x += velocity
-
-      if (player.playerMesh.position.x >= 10000) {
-
-        player.playerMesh.position.y -= 10
-        paused = true
-        gameOver = true
-
-      }
-
-      /*player.playerMesh.updateMatrixWorld(true)
-      player.box.copy(player.box).applyMatrix4(player.playerMesh.matrixWorld)*/
-
-      //Rotation of all members of the Player Body
-      rotateMembers()
-      updateFallingObjects()
-      calculateCollisions()
-
-    }
-  }
-
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate)
 
 }
 
@@ -568,14 +656,21 @@ function calculateCollisions() {
 
       if (fallingObjects[i].type === "good") {
         score += 200
+        updateLifeScoreBolachaColision()
         fallingObjects.splice(i, 1)
         scene.remove(object)
         i--
         //console.log(score)
       }
       else if (fallingObjects[i].type === "bad") {
-        score -= 100
+        if (score >= 100) { score -= 100 }
+        else {
+          score = 0
+        }
+
         lifes -= 1
+
+        updateLifeScoreGermeColision()
         fallingObjects.splice(i, 1)
         scene.remove(object)
         i--
@@ -585,6 +680,43 @@ function calculateCollisions() {
 
   }
 
+
+}
+function updateLifeScoreGermeColision() {
+  var text = "Score: " + score;
+  meshScore.geometry = new THREE.TextGeometry(text, {
+    font: fontText,
+    size: 10,
+    height: 0.5,
+
+
+    bevelThickness: 1,
+    extrudeMaterial: 1
+  });
+  var text = "Vidas: " + lifes;
+  meshLifes.geometry = new THREE.TextGeometry(text, {
+    font: fontText,
+    size: 10,
+    height: 0.5,
+
+
+    bevelThickness: 1,
+    extrudeMaterial: 1
+  });
+
+}
+
+function updateLifeScoreBolachaColision() {
+  var text = "Score: " + score;
+  meshScore.geometry = new THREE.TextGeometry(text, {
+    font: fontText,
+    size: 10,
+    height: 0.5,
+
+
+    bevelThickness: 1,
+    extrudeMaterial: 1
+  });
 
 }
 
