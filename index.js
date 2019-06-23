@@ -538,12 +538,15 @@ function pauseMenu() {
     pausedMesh = new THREE.Mesh(geometry, material)
     pausedMesh.position.x = - (plane.geometry.parameters.width / 2) + 50;
     pausedMesh.position.y = 20;
-    pausedMesh.position.z = 900;
+    pausedMesh.position.z = 200;
     //mesh.position.set(-1000,0,-50)
     pausedMesh.rotateY(-Math.PI / 2)
     scene.add(pausedMesh)
+    console.log("pause")
   
   })
+  
+ 
 
 }
 
@@ -625,12 +628,12 @@ function animate() {
 
 
     }
-
+  }
     renderer.render(scene, camera);
 
     requestAnimationFrame(animate)
 
-  }
+  
 
 
 }
@@ -654,6 +657,10 @@ function GameOverText() {
   gameOverMesh.rotateY(-Math.PI / 2)
   scene.add(gameOverMesh)
   console.log(gameOverMesh)
+  console.log(fontText)
+
+  
+ 
 
 }
 
